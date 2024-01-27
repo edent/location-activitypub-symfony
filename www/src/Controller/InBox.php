@@ -18,9 +18,23 @@ class InBox extends AbstractController
 		//	Get the POST'ed data
 		$request = Request::createFromGlobals();
 		$inbox_message = $request->getPayload()->all();
-		if ( !isset( $inbox_message["type"] ) ) { file_put_contents("new.txt",serialize($inbox_message)); die(); }
+
+		//	No type? Ignore it
+		if ( !isset( $inbox_message["type"] ) ) { 
+			// file_put_contents("new.txt",serialize($inbox_message)); 
+			die(); 
+		}
+
+		//	Get the type
 		$inbox_type = $inbox_message["type"];
-		if ( "Follow" != $inbox_type ) { file_put_contents("notfollow.txt",serialize($inbox_message)); die(); }
+
+		//	Not a follow request? Ignore it
+		if ( "Follow" != $inbox_type ) { 
+			// file_put_contents("notfollow.txt",serialize($inbox_message)); 
+			die(); 
+		}
+
+		//	Get the parameters
 		$inbox_id = $inbox_message["id"];
 		$inbox_actor = $inbox_message["actor"];
 		$inbox_url = parse_url($inbox_actor, PHP_URL_SCHEME) . "://" . parse_url($inbox_actor, PHP_URL_HOST);
@@ -44,10 +58,13 @@ class InBox extends AbstractController
 			]
 		];
 
+		//	Where is this being sent?
 		$host = $inbox_host;
 		$path = '/inbox';
+
+		//	Set up signing
 		$privateKey = $_ENV["PRIVATE_KEY"];
-		$keyId = 'https://location.edent.tel/edent_location';
+		$keyId = 'https://location.edent.tel/edent_location#main-key';
 
 		$hash = hash('sha256', json_encode($message), true);
 		$digest = base64_encode($hash);
@@ -60,13 +77,14 @@ class InBox extends AbstractController
 
 		$header = 'keyId="' . $keyId . '",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="' . $signature_b64 . '"';
 
+		//	Header for POST reply
 		$headers = array(
-			'host'         => $host,
-			'date'         => $date,
-			'signature'    => $header,
-			'digest'       => 'SHA-256=' . $digest,
-			'content-type' => 'application/activity+json',
-			'accept'       => 'application/activity+json',
+			"Host: {$host}",
+			"Date: {$date}",
+			"Signature: {$header}",
+			"Digest: SHA-256={$digest}",
+			"Content-Type: application/activity+json",
+			"Accept: application/activity+json",
 		);
 	
 		file_put_contents("follow.txt",print_r($message, true));
@@ -77,24 +95,26 @@ class InBox extends AbstractController
 
 		file_put_contents("remote.txt", $remoteServerUrl);
 
+		//	POST the message and header to the requester's inbox
 		$ch = curl_init($remoteServerUrl);
 
+		$curl_error_log = fopen(dirname(__FILE__).'/curlerr.txt', 'w');
+
+		// curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		file_put_contents("ch.txt",print_r($ch, true));
-
+		curl_setopt($ch, CURLOPT_VERBOSE, 1);
+		curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
+	
 		$response = curl_exec($ch);
 		if(curl_errno($ch)) {
 			file_put_contents("error.txt",  curl_error($ch) );
 		} else {
 			file_put_contents("curl.txt", $response);
 		}
-		file_put_contents("ch1.txt",print_r($ch, true));
 		curl_close($ch);
-		file_put_contents("ch2.txt",print_r($ch, true));
-
 
 		// //	Send the response
 		// $client = HttpClient::create();
