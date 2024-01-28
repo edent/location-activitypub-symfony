@@ -13,7 +13,33 @@ use Symfony\Component\HttpClient\HttpClient;
 class OutBox extends AbstractController
 {
 	#[Route("/send", name: "send")]
-	public function send(): JsonResponse {
+	public function send( Request $request ) {
+
+		//	Was this POST'd?
+		if ( $request->isMethod('POST') ) {
+			//	Password check
+			if ( $_ENV["PASSWORD"] != $request->request->get( "password" ) ) {
+				die();
+			}
+
+			$PlaceName = $request->request->get( "PlaceName" );
+			$PlaceLat  = $request->request->get( "PlaceLat" );
+			$PlaceLon  = $request->request->get( "PlaceLon"  );
+			$PlaceType = $request->request->get( "PlaceType" );
+			$PlaceID   = $request->request->get( "PlaceID"   );
+
+			$content = "<p>Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a></p>";
+
+		} else {
+			$response = new Response(
+				"Nope!",
+				Response::HTTP_UNSUPPORTED_MEDIA_TYPE,
+				["content-type" => "text/html"]
+			);
+			die();
+		}
+
+
 
 		$timestamp = date("c");
 		//	Outgoing Message ID
@@ -24,21 +50,21 @@ class OutBox extends AbstractController
 			"type"         => "Note",
 			"published"    => $timestamp,
 			"attributedTo" => "https://location.edent.tel/edent_location",
-			"content"      => "Another test <a href=\"https://www.openstreetmap.org/way/958999496\">John Lennon's Imagine Mosaic</a>.",
+			"content"      => $content,
 			"to"           => [
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
-			"attachment"   => [
-				  "type"      => "Image",
-				  "mediaType" => "image/jpeg",
-				  "url"       => "https://fastly.4sqi.net/img/general/590x786/56367_9pxuZJD7d1hgPdaMFcFq1pipvTTMynBJsYcpHH-b8mU.jpg",
-				  "name"      => "A photo of a mosaic which says 'Imagine'."
-			 ],
+			// "attachment"   => [
+			// 	  "type"      => "Image",
+			// 	  "mediaType" => "image/jpeg",
+			// 	  "url"       => "https://fastly.4sqi.net/img/general/590x786/56367_9pxuZJD7d1hgPdaMFcFq1pipvTTMynBJsYcpHH-b8mU.jpg",
+			// 	  "name"      => "A photo of a mosaic which says 'Imagine'."
+			//  ],
 			 "location"    => [
-				"name"      => "John Lennon's Imagine",
+				"name"      => $PlaceName,
 				"type"      => "Place",
-				"longitude" => 40.77563,
-				"latitude"  => -73.97474
+				"longitude" => $PlaceLon,
+				"latitude"  => $PlaceLat
 			]
 		];
 
@@ -121,11 +147,11 @@ class OutBox extends AbstractController
 			curl_close($ch);
 		}
 
-
-		//	Render the page
-		//	Not necessary - but gives us something to look at!
-		$response = new JsonResponse($message);	
-		$response->headers->add($headers);
+		$response = new Response(
+			"https://location.edent.tel/{$guid}",
+			Response::HTTP_OK,
+			["content-type" => "text/plain"]
+		);
 		return $response;
 	}
 }
