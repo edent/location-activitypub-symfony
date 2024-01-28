@@ -57,6 +57,7 @@ class InBox extends AbstractController
 				'object'   => 'https://location.edent.tel/edent_location',
 			]
 		];
+		$message_json = json_encode($message);
 
 		//	Where is this being sent?
 		$host = $inbox_host;
@@ -66,10 +67,10 @@ class InBox extends AbstractController
 		$privateKey = $_ENV["PRIVATE_KEY"];
 		$keyId = 'https://location.edent.tel/edent_location#main-key';
 
-		$hash = hash('sha256', json_encode($message), true);
+		$hash = hash('sha256', $message_json, true);
 		$digest = base64_encode($hash);
-
 		$date = date('D, d M Y H:i:s \G\M\T');
+
 		$signer = openssl_get_privatekey($privateKey);
 		$stringToSign = "(request-target): post $path\nhost: $host\ndate: $date\ndigest: SHA-256=$digest";
 		openssl_sign($stringToSign, $signature, $signer, OPENSSL_ALGO_SHA256);
@@ -79,15 +80,15 @@ class InBox extends AbstractController
 
 		//	Header for POST reply
 		$headers = array(
-			"Host: {$host}",
-			"Date: {$date}",
-			"Signature: {$header}",
-			"Digest: SHA-256={$digest}",
+			        "Host: {$host}",
+			        "Date: {$date}",
+			   "Signature: {$header}",
+			      "Digest: SHA-256={$digest}",
 			"Content-Type: application/activity+json",
-			"Accept: application/activity+json",
+			      "Accept: application/activity+json",
 		);
 	
-		file_put_contents("follow.txt",print_r($message, true));
+		file_put_contents("follow.txt",print_r($message_json, true));
 		file_put_contents("headers.txt",print_r($headers, true));
 
 		// Specify the URL of the remote server
@@ -100,10 +101,9 @@ class InBox extends AbstractController
 
 		$curl_error_log = fopen(dirname(__FILE__).'/curlerr.txt', 'w');
 
-		// curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $message_json);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_VERBOSE, 1);
 		curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
@@ -136,38 +136,5 @@ class InBox extends AbstractController
 		$response = new JsonResponse($message);	
 		$response->headers->add($headers);
 		return $response;
-	}
-
-	#[Route("/test", name: "test")]
-	public function test() {
-		//	Send the response
-		// Create an instance of the HttpClient
-		$client = HttpClient::create();
-
-		// Specify the URL of the remote server
-		$remoteServerUrl = "https://example.com/inbox";
-
-		$headers = [
-			'Content-Type' => 'application/activity+json',
-			'Accept'       => 'application/activity+json',
-		];
-
-		$message = [
-			'@context' => 'https://www.w3.org/ns/activitystreams',
-			'id'       => 'https://location.edent.tel/',
-			'type'     => 'Accept',
-		];
-
-		// Send the POST request
-		$response = $client->request('POST', $remoteServerUrl, [
-			'headers' => $headers,
-			'json' => $message, // Use 'json' option to automatically encode data as JSON
-		]);
-
-		var_dump($response);
-
-		// Get the response content
-		$content = $response->getContent();
-		file_put_contents("content.txt",serialize($content));
 	}
 }
