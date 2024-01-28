@@ -61,8 +61,9 @@ class InBox extends AbstractController
 
 		//	Where is this being sent?
 		$host = $inbox_host;
-		$path = '/inbox';
-
+		// $path = '/users/Edent/inbox';
+		$path = parse_url($inbox_actor, PHP_URL_PATH) . "/inbox";
+		
 		//	Set up signing
 		$privateKey = $_ENV["PRIVATE_KEY"];
 		$keyId = 'https://location.edent.tel/edent_location#main-key';
@@ -82,8 +83,8 @@ class InBox extends AbstractController
 		$headers = array(
 			        "Host: {$host}",
 			        "Date: {$date}",
-			   "Signature: {$header}",
 			      "Digest: SHA-256={$digest}",
+			   "Signature: {$header}",
 			"Content-Type: application/activity+json",
 			      "Accept: application/activity+json",
 		);
