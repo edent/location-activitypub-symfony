@@ -15,8 +15,8 @@ class WellKnown extends AbstractController
 
 		//	Create User's WebFinger
 		$feature = array(
-			"subject"      => "acct:edent_location@location.edent.tel",
-			"links" => array(
+			"subject" => "acct:edent_location@location.edent.tel",
+			"links"   => array(
 				array(
 					"rel"  => "self",
 					"type" => "application/activity+json",
