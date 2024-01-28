@@ -12,8 +12,8 @@ use Symfony\Component\HttpClient\HttpClient;
 
 class OutBox extends AbstractController
 {
-	#[Route("/outbox", name: "outbox")]
-	public function outbox(): JsonResponse {
+	#[Route("/send", name: "send")]
+	public function send(): JsonResponse {
 
 		$timestamp = date("c");
 		//	Outgoing Message ID
@@ -121,23 +121,8 @@ class OutBox extends AbstractController
 		}
 		curl_close($ch);
 
-		// //	Send the response
-		// $client = HttpClient::create();
-		// file_put_contents("client.txt", serialize($client));
-
-		// // Send the POST request
-		// $send = $client->request('POST', $remoteServerUrl, [
-		// 	'headers' => $headers,
-		// 	'json' => $message, // Use 'json' option to automatically encode data as JSON
-		// ]);
-
-		// // Get the response content
-		// file_put_contents("send.txt",serialize($send->toArray()));
-
-		// $content = $send->getContent();
-		// file_put_contents("content.txt",serialize($content));
-
 		//	Render the page
+		//	Not necessary - but gives us something to look at!
 		$response = new JsonResponse($message);	
 		$response->headers->add($headers);
 		return $response;

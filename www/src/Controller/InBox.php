@@ -40,6 +40,14 @@ class InBox extends AbstractController
 		$inbox_url = parse_url($inbox_actor, PHP_URL_SCHEME) . "://" . parse_url($inbox_actor, PHP_URL_HOST);
 		$inbox_host = parse_url($inbox_actor, PHP_URL_HOST);
 
+		//	Read existing users
+		$followers_file = file_get_contents( "followers.json" );
+		$followers_json = json_decode( $followers_file, true );
+		//	Add user to list. Don't care about duplicate users, server is what's important
+		$followers_json[$inbox_host]["users"][] = $inbox_actor;
+		//	Save the new file
+		file_put_contents( "followers.json", print_r( json_encode( $followers_json ), true ) );
+
 		//	Response Message ID
 		$guid = bin2hex(random_bytes(16));
 
@@ -117,23 +125,8 @@ class InBox extends AbstractController
 		}
 		curl_close($ch);
 
-		// //	Send the response
-		// $client = HttpClient::create();
-		// file_put_contents("client.txt", serialize($client));
-
-		// // Send the POST request
-		// $send = $client->request('POST', $remoteServerUrl, [
-		// 	'headers' => $headers,
-		// 	'json' => $message, // Use 'json' option to automatically encode data as JSON
-		// ]);
-
-		// // Get the response content
-		// file_put_contents("send.txt",serialize($send->toArray()));
-
-		// $content = $send->getContent();
-		// file_put_contents("content.txt",serialize($content));
-
 		//	Render the page
+		//	Not necessary - but gives us something to look at!
 		$response = new JsonResponse($message);	
 		$response->headers->add($headers);
 		return $response;
