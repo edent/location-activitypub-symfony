@@ -19,6 +19,8 @@ class InBox extends AbstractController
 		$request = Request::createFromGlobals();
 		$inbox_message = $request->getPayload()->all();
 
+		// file_put_contents("inbox.txt",serialize($inbox_message)); 
+
 		//	No type? Ignore it
 		if ( !isset( $inbox_message["type"] ) ) { 
 			// file_put_contents("new.txt",serialize($inbox_message)); 
