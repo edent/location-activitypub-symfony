@@ -55,35 +55,35 @@ class User extends AbstractController
 	}
 
 	#[Route("/following", name: "following")]
-        public function following(): JsonResponse {
+	public function following(): JsonResponse {
 
-                //	Create User's Profile
-                $feature = array(
+		//	Create User's Profile
+		$feature = array(
 			"@context"   => "https://www.w3.org/ns/activitystreams",
 			"id"         => "https://location.edent.tel/following",
 			"type"       => "OrderedCollection",
 			"totalItems" => 0,
 			"first"      => "https://location.edent.tel/following_accts"
 		);
-                //      Render the page
-                $response = new JsonResponse($feature);
-                return $response;
-        }
+		//	Render the page
+		$response = new JsonResponse($feature);
+		return $response;
+	}
 
-        #[Route("/followers", name: "followers")]
-        public function followers(): JsonResponse {
+	#[Route("/followers", name: "followers")]
+	public function followers(): JsonResponse {
 
-                //      Create User's Profile
-                $feature = array(
-                        "@context"   => "https://www.w3.org/ns/activitystreams",
-                        "id"         => "https://location.edent.tel/followers",
-                        "type"       => "OrderedCollection",
-                        "totalItems" => 0,
-                        "first"      => "https://location.edent.tel/follower_accts"
-                );
-                //	Render the page
-                $response = new JsonResponse($feature);
-                return $response;
-        }
+		//	Create User's Profile
+		$feature = array(
+				"@context"   => "https://www.w3.org/ns/activitystreams",
+				"id"         => "https://location.edent.tel/followers",
+				"type"       => "OrderedCollection",
+				"totalItems" => 0,
+				"first"      => "https://location.edent.tel/follower_accts"
+		);
+		//	Render the page
+		$response = new JsonResponse($feature);
+		return $response;
+	}
 
 }
