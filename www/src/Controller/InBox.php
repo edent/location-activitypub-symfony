@@ -23,16 +23,21 @@ class InBox extends AbstractController
 
 		//	No type? Ignore it
 		if ( !isset( $inbox_message["type"] ) ) { 
-			// file_put_contents("new.txt",serialize($inbox_message)); 
+			file_put_contents("logs/" . date("c") . ".json", print_r( json_encode($inbox_message), true ) ); 
 			die(); 
 		}
 
 		//	Get the type
 		$inbox_type = $inbox_message["type"];
 
-		//	Not a follow request? Ignore it
+		//	Ignore deleted account notifications
+		if ( "Delete" == $inbox_type ) { 
+			die(); 
+		}
+
+		//	Not a follow request? Log it
 		if ( "Follow" != $inbox_type ) { 
-			// file_put_contents("notfollow.txt",serialize($inbox_message)); 
+			file_put_contents("logs/" . date("c") . " $inbox_type.json", print_r( json_encode($inbox_message), true ) ); 
 			die(); 
 		}
 
@@ -99,31 +104,31 @@ class InBox extends AbstractController
 			      "Accept: application/activity+json",
 		);
 	
-		file_put_contents("follow.txt",print_r($message_json, true));
-		file_put_contents("headers.txt",print_r($headers, true));
 
 		// Specify the URL of the remote server
 		$remoteServerUrl = $inbox_actor . "/inbox";
 
-		file_put_contents("remote.txt", $remoteServerUrl);
+		// file_put_contents("follow.txt",print_r($message_json, true));
+		// file_put_contents("headers.txt",print_r($headers, true));
+		// file_put_contents("remote.txt", $remoteServerUrl);
 
 		//	POST the message and header to the requester's inbox
 		$ch = curl_init($remoteServerUrl);
 
-		$curl_error_log = fopen(dirname(__FILE__).'/curlerr.txt', 'w');
+		// $curl_error_log = fopen(dirname(__FILE__).'/curlerr.txt', 'w');
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $message_json);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_VERBOSE, 1);
-		curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
+		// curl_setopt($ch, CURLOPT_VERBOSE, 1);
+		// curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
 	
 		$response = curl_exec($ch);
 		if(curl_errno($ch)) {
 			file_put_contents("error.txt",  curl_error($ch) );
 		} else {
-			file_put_contents("curl.txt", $response);
+			// file_put_contents("curl.txt", $response);
 		}
 		curl_close($ch);
 

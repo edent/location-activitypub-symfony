@@ -154,20 +154,20 @@ class OutBox extends AbstractController
 			//	POST the message and header to the requester's inbox
 			$ch = curl_init($remoteServerUrl);
 	
-			$curl_error_log = fopen(dirname(__FILE__).'/outcurlerr.txt', 'w');
+			// $curl_error_log = fopen(dirname(__FILE__).'/outcurlerr.txt', 'w');
 	
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $message_json);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_VERBOSE, 1);
-			curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
+			// curl_setopt($ch, CURLOPT_VERBOSE, 1);
+			// curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
 		
 			$response = curl_exec($ch);
 			if(curl_errno($ch)) {
 				file_put_contents("outerror.txt",  curl_error($ch) );
 			} else {
-				file_put_contents("outcurl.txt", $response);
+				// file_put_contents("outcurl.txt", $response);
 			}
 			curl_close($ch);
 		}
