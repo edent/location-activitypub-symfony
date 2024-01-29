@@ -42,7 +42,7 @@ class OutBox extends AbstractController
 		}
 
 		//	Is there an image?
-		if ( isset( $_FILES['photo']['tmp_name'] ) ) {
+		if ( isset( $_FILES['photo']['tmp_name'] ) && ("" != $_FILES['photo']['tmp_name'] ) ) {
 			$photo = $_FILES['photo']['tmp_name'];
 
 			//	Files are stored according to their hash
@@ -76,16 +76,16 @@ class OutBox extends AbstractController
 		$guid = bin2hex(random_bytes(16));
 
 		$note = [
+			"@context"     => array("https://www.w3.org/ns/activitystreams",["@language" => "en"]),
 			"id"           => "https://location.edent.tel/{$guid}",
 			"type"         => "Note",
 			"published"    => $timestamp,
 			"attributedTo" => "https://location.edent.tel/edent_location",
 			"content"      => $content,
-			"to"           => [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
+			"contentMap"   => ["en" => $content],
+			"to"           => ["https://www.w3.org/ns/activitystreams#Public"],
 			"attachment"   => $attachment,
-			"location"    => [
+			"location"     => [
 				"name"      => $PlaceName,
 				"type"      => "Place",
 				"longitude" => $PlaceLon,
