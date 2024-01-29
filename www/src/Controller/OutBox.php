@@ -39,7 +39,35 @@ class OutBox extends AbstractController
 			die();
 		}
 
+		//	Is there an image?
+		if ( isset( $_FILES['photo']['tmp_name'] ) ) {
+			$photo = $_FILES['photo']['tmp_name'];
 
+			//	Files are stored according to their hash
+			//	So "abc123" is stored as "/a/b/abc123.jpg"
+			$sha1 = sha1_file( $photo );
+			$directory = substr( $sha1, 0, 1);
+			$subdirectory = substr( $sha1, 1, 1);
+			$photo_path = "images/" . $directory . "/" . $subdirectory . "/";
+			$photo_full_path = $photo_path . $sha1 . ".jpg";
+
+			//	Move media to the correct location
+			//	Create a directory if it doesn't exist
+			if ( !is_dir( $photo_path ) ) {
+				mkdir( $photo_path, 0777, true );
+			}
+			move_uploaded_file($photo, $photo_full_path);
+
+			$attachment = [
+				"type"      => "Image",
+				"mediaType" => "image/jpeg",
+				"url"       => "https://location.edent.tel/{$photo_full_path}",
+				"name"      => "A photo of the place."
+		  ];
+
+		} else {
+			$attachment = [];
+		}
 
 		$timestamp = date("c");
 		//	Outgoing Message ID
@@ -54,13 +82,8 @@ class OutBox extends AbstractController
 			"to"           => [
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
-			// "attachment"   => [
-			// 	  "type"      => "Image",
-			// 	  "mediaType" => "image/jpeg",
-			// 	  "url"       => "https://fastly.4sqi.net/img/general/590x786/56367_9pxuZJD7d1hgPdaMFcFq1pipvTTMynBJsYcpHH-b8mU.jpg",
-			// 	  "name"      => "A photo of a mosaic which says 'Imagine'."
-			//  ],
-			 "location"    => [
+			"attachment"   => $attachment,
+			"location"    => [
 				"name"      => $PlaceName,
 				"type"      => "Place",
 				"longitude" => $PlaceLon,
