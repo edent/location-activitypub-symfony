@@ -73,12 +73,21 @@ class User extends AbstractController
 	#[Route("/followers", name: "followers")]
 	public function followers(): JsonResponse {
 
+		//	Read existing followers and count them
+		$followers_file = file_get_contents( "followers.json" );
+		$followers_json = json_decode( $followers_file, true );		
+		$followers_total = 0;
+		foreach ($followers_json as $domain => $users) {
+			$followers_total += count($users['users']);
+		}
+
+
 		//	Create User's Profile
 		$feature = array(
 				"@context"   => "https://www.w3.org/ns/activitystreams",
 				"id"         => "https://location.edent.tel/followers",
 				"type"       => "OrderedCollection",
-				"totalItems" => 0,
+				"totalItems" => $followers_total,
 				"first"      => "https://location.edent.tel/follower_accts"
 		);
 		//	Render the page
