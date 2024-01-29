@@ -23,12 +23,14 @@ class OutBox extends AbstractController
 			}
 
 			$PlaceName = $request->request->get( "PlaceName" );
-			$PlaceLat  = $request->request->get( "PlaceLat" );
+			$PlaceLat  = $request->request->get( "PlaceLat"  );
 			$PlaceLon  = $request->request->get( "PlaceLon"  );
 			$PlaceType = $request->request->get( "PlaceType" );
 			$PlaceID   = $request->request->get( "PlaceID"   );
+			$details   = $request->request->get( "details"   );
+			$alt       = $request->request->get( "alt"       );
 
-			$content = "<p>Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a></p>";
+			$content = "<p>Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a><br>{$details}</p>";
 
 		} else {
 			$response = new Response(
@@ -62,7 +64,7 @@ class OutBox extends AbstractController
 				"type"      => "Image",
 				"mediaType" => "image/jpeg",
 				"url"       => "https://location.edent.tel/{$photo_full_path}",
-				"name"      => "A photo of the place."
+				"name"      => $alt
 		  ];
 
 		} else {
