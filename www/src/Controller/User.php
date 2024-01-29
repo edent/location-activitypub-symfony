@@ -26,7 +26,7 @@ class User extends AbstractController
 			"inbox"     => "https://location.edent.tel/inbox",
 			"preferredUsername" => "edent_location",
 			"name"      => "Terence Eden's location",
-			"summary"   => "Where @edent is.",
+			"summary"   => "Where @edent is. All replies are ignored. This is a write-only account.",
 			"url"       => "https://location.edent.tel/edent_location",
 			"manuallyApprovesFollowers" => true,
 			"discoverable" => true,
@@ -81,7 +81,6 @@ class User extends AbstractController
 			$followers_total += count($users['users']);
 		}
 
-
 		//	Create User's Profile
 		$feature = array(
 				"@context"   => "https://www.w3.org/ns/activitystreams",
@@ -90,6 +89,7 @@ class User extends AbstractController
 				"totalItems" => $followers_total,
 				"first"      => "https://location.edent.tel/follower_accts"
 		);
+		
 		//	Render the page
 		$response = new JsonResponse($feature);
 		return $response;
