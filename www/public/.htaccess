@@ -68,3 +68,10 @@ DirectoryIndex index.php
         # RedirectTemp cannot be used instead
     </IfModule>
 </IfModule>
+
+<Files "admin.php">
+    AuthType Basic
+    AuthName "Restricted Access"
+    AuthUserFile .htpasswd
+    Require valid-user
+</Files>
