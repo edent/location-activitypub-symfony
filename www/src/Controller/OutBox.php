@@ -13,6 +13,35 @@ use Symfony\Component\HttpClient\HttpClient;
 
 class OutBox extends AbstractController
 {
+	#[Route("/outbox", name: "outbox")]
+	public function outbox(): JsonResponse {
+
+		//	Get all posts
+		$posts = array_reverse( glob("posts/" . "*.json") );
+		//	Number of posts
+		$totalItems = count( $posts );
+		//	Create an ordered list
+		$orderedItems = [];
+		foreach ($posts as $post) {
+			$orderedItems[] = json_decode( file_get_contents( $post ) );
+		}
+
+
+		//	Create User's outbox
+		$feature = array(
+			"@context"     => "https://www.w3.org/ns/activitystreams",
+			"id"           => "https://location.edent.tel/outbox",
+			"type"         => "OrderedCollection",
+			"totalItems"   =>  $totalItems,
+			"summary"      => "All the location posts",
+			"orderedItems" =>  $orderedItems
+		);
+
+		//	Render the page
+		$response = new JsonResponse($feature);	
+		return $response;
+	}
+
 	#[Route("/send", name: "send")]
 	public function send( Request $request ): RedirectResponse {
 
@@ -105,8 +134,10 @@ class OutBox extends AbstractController
 		];
 		$message_json = json_encode($message);
 
-		//	Save the permalink
+		//	Create the context for the permalink
 		$note = [ "@context" => "https://www.w3.org/ns/activitystreams", ...$note];
+		
+		//	Save the permalink
 		$note_json = json_encode($note);
 		file_put_contents( "posts/{$guid}.json", print_r($note_json, true) );
 
@@ -134,7 +165,7 @@ class OutBox extends AbstractController
 	
 			$header = 'keyId="' . $keyId . '",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="' . $signature_b64 . '"';
 	
-			//	Header for POST reply
+			//	Header for POST reply+
 			$headers = array(
 						  "Host: {$host}",
 						  "Date: {$date}",
