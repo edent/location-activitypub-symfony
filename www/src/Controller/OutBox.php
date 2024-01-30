@@ -7,13 +7,14 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Symfony\Component\HttpClient\HttpClient;
 
 class OutBox extends AbstractController
 {
 	#[Route("/send", name: "send")]
-	public function send( Request $request ) {
+	public function send( Request $request ): RedirectResponse {
 
 		//	Was this POST'd?
 		if ( $request->isMethod('POST') ) {
@@ -30,14 +31,9 @@ class OutBox extends AbstractController
 			$details   = $request->request->get( "details"   );
 			$alt       = $request->request->get( "alt"       );
 
-			$content = "<p>Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a><br>{$details}</p>";
+			$content = "<p>🌐 Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a><br>{$details}</p>";
 
 		} else {
-			$response = new Response(
-				"Nope!",
-				Response::HTTP_UNSUPPORTED_MEDIA_TYPE,
-				["content-type" => "text/html"]
-			);
 			die();
 		}
 
@@ -73,11 +69,11 @@ class OutBox extends AbstractController
 
 		$timestamp = date("c");
 		//	Outgoing Message ID
-		$guid = bin2hex(random_bytes(16));
+		$guid = $this->uuid();//bin2hex(random_bytes(16));
 
 		$note = [
 			"@context"     => array("https://www.w3.org/ns/activitystreams",["@language" => "en"]),
-			"id"           => "https://location.edent.tel/{$guid}",
+			"id"           => "https://location.edent.tel/posts/{$guid}.json",
 			"type"         => "Note",
 			"published"    => $timestamp,
 			"attributedTo" => "https://location.edent.tel/edent_location",
@@ -96,7 +92,7 @@ class OutBox extends AbstractController
 		//	Message
 		$message = [
 			"@context" => "https://www.w3.org/ns/activitystreams",
-			"id"       => "https://location.edent.tel/{$guid}",
+			"id"       => "https://location.edent.tel/posts/{$guid}.json",
 			"type"     => "Create",
 			"actor"    => "https://location.edent.tel/edent_location",
 			"to"       => [
@@ -112,7 +108,7 @@ class OutBox extends AbstractController
 		//	Save the permalink
 		$note = [ "@context" => "https://www.w3.org/ns/activitystreams", ...$note];
 		$note_json = json_encode($note);
-		file_put_contents($guid,print_r($note_json, true));
+		file_put_contents( "posts/{$guid}.json", print_r($note_json, true) );
 
 		//	Read existing users and get their hosts
 		$followers_file = file_get_contents( "followers.json" );
@@ -172,11 +168,17 @@ class OutBox extends AbstractController
 			curl_close($ch);
 		}
 
-		$response = new Response(
-			"https://location.edent.tel/{$guid}",
-			Response::HTTP_OK,
-			["content-type" => "text/plain"]
+		return $this->redirect("https://location.edent.tel/posts/{$guid}.json");
+	}
+
+	public function uuid() {
+		//	Date sortable UUID
+		return sprintf('%08x-%04x-%04x-%04x-%012x',
+			time(),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0x3fff) | 0x8000,
+			mt_rand(0, 0xffffffffffff)
 		);
-		return $response;
 	}
 }
