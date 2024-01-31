@@ -23,7 +23,12 @@ class OutBox extends AbstractController
 		//	Create an ordered list
 		$orderedItems = [];
 		foreach ($posts as $post) {
-			$orderedItems[] = json_decode( file_get_contents( $post ) );
+			$orderedItems[] = array(
+				"type"   => "Create",
+				"actor"  => "https://location.edent.tel/edent_location",
+				"object" => "https://location.edent.tel/{$post}"
+			);
+			//json_decode( file_get_contents( $post ) );
 		}
 
 
