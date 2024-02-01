@@ -151,7 +151,12 @@ class OutBox extends AbstractController
 		$followers_json = json_decode( $followers_file, true );		
 		$hosts = array_keys($followers_json);
 
+		//	Prepare to use the multiple cURL handle
+		$mh = curl_multi_init();
+
 		//	Loop through all the severs of the followers
+		//	Each server needs its own cURL handle
+		//	Each POST to an inbox needs to be signed separately
 		foreach ($hosts as $host) {
 			$path = '/inbox';
 			
@@ -170,7 +175,7 @@ class OutBox extends AbstractController
 	
 			$header = 'keyId="' . $keyId . '",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="' . $signature_b64 . '"';
 	
-			//	Header for POST reply+
+			//	Header for POST reply
 			$headers = array(
 						  "Host: {$host}",
 						  "Date: {$date}",
@@ -184,7 +189,7 @@ class OutBox extends AbstractController
 			$remoteServerUrl = "https://{$host}{$path}";
 		
 			//	POST the message and header to the requester's inbox
-			$ch = curl_init($remoteServerUrl);
+			$ch = curl_init( $remoteServerUrl );
 	
 			// $curl_error_log = fopen(dirname(__FILE__).'/outcurlerr.txt', 'w');
 	
@@ -194,15 +199,21 @@ class OutBox extends AbstractController
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 			// curl_setopt($ch, CURLOPT_VERBOSE, 1);
 			// curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
-		
-			$response = curl_exec($ch);
-			if(curl_errno($ch)) {
-				file_put_contents("outerror.txt",  curl_error($ch) );
-			} else {
-				// file_put_contents("outcurl.txt", $response);
-			}
-			curl_close($ch);
+
+			//	Add the handle to the multi-handle
+			curl_multi_add_handle( $mh, $ch );
 		}
+
+		//	Execute the multi-handle
+		do {
+			$status = curl_multi_exec( $mh, $active );
+			if ( $active ) {
+				curl_multi_select( $mh );
+			}
+		} while ( $active && $status == CURLM_OK );
+
+		//	Close the multi-handle
+		curl_multi_close( $mh );
 
 		return $this->redirect("https://location.edent.tel/posts/{$guid}.json");
 	}
