@@ -95,4 +95,51 @@ class User extends AbstractController
 		return $response;
 	}
 
+	#[Route("/geojson", name: "geojson")]
+	public function geojson(): JsonResponse {
+		//	Get all posts
+		$posts = glob("posts/" . "*.json");
+		
+		//	Create an ordered list
+		$features = [];
+
+		//	Loop through them all
+		foreach ($posts as $post) {
+			//	Get contents of the file
+			$feature = json_decode( file_get_contents( $post ) );
+
+			//	Build the feature
+			$features[] = array(
+				"id"       => $feature->id,
+				"type"     => "Feature",
+				"geometry" => [
+					"type"        => "Point",
+					"coordinates" => [
+						floatval( $feature->location->longitude ),
+						floatval( $feature->location->latitude  )
+					]
+				],
+				"properties" => [
+					"created_at"   => $feature->published,
+					"popupContent" => $feature->content,
+					"media"        => [
+						array( 
+							"url" => isset( $feature->attachment->url ) ? $feature->attachment->url : ""	
+						)
+					]
+				]
+			);
+		}
+
+		//	Construct the GeoJSON
+		$geojson = array(
+			"type"     => "FeatureCollection",
+			"features" => $features
+		);
+
+		//	Render the page
+		$response = new JsonResponse($geojson);
+		return $response;
+	}
+
 }
