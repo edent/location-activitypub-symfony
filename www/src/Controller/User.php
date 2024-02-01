@@ -24,6 +24,7 @@ class User extends AbstractController
 			"following" => "https://location.edent.tel/following",
 			"followers" => "https://location.edent.tel/followers",
 			"inbox"     => "https://location.edent.tel/inbox",
+			"outbox"    => "https://location.edent.tel/outbox",
 			"preferredUsername" => "edent_location",
 			"name"      => "Terence Eden's location",
 			"summary"   => "Where @edent is. All replies are ignored. This is a write-only account.",
