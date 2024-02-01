@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+	<head>
+		<meta charset="UTF-8">
+		<title>Where is Terence Eden?</title>
+		<!-- Favicons https://realfavicongenerator.net -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="/js/leaflet.1.9.3/leaflet.css">
+		<script                 src="/js/leaflet.1.9.3/leaflet.js"></script>
+		<script                 src='/js/Leaflet.Sleep-0.5.2/Leaflet.Sleep.js'></script>
+
+		<script                 src="/js/Leaflet.markercluster-1.5.3/leaflet.markercluster-src.js"></script>
+		<link rel="stylesheet" href="/js/Leaflet.markercluster-1.5.3/MarkerCluster.css">
+		<link rel="stylesheet" href="/js/Leaflet.markercluster-1.5.3/MarkerCluster.Default.css">
+		<style>
+			#map {
+				width: 512px;
+				height: 512px;
+			}
+		</style>
+	</head>
+	<body itemscope itemtype="https://schema.org/WebPage">
+		<hgroup>
+			<h1>Where is Terence Eden?
+			</h1>
+			<p itemprop="description">A map of all my Fediverse check-ins</p>
+		</hgroup>
+		<div id="map"></div>
+		<p>Follow my adventures using: <pre>@edent_location@location.edent.tel</pre></p>
+<script>
+
+	// Set up tile layers
+	var OpenStreetMap_Mapnik = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		minZoom: 2,
+		maxNativeZoom: 19,
+		maxZoom: 22,
+		attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+		id: 'osm.mapnik'
+	});
+
+	//	Settings for map		
+	var map = L.map('map', {
+		sleepNote: false, 
+		sleepOpacity: 1,
+		minZoom: 2,
+		maxZoom: 19,
+		worldCopyJump: true
+	})
+
+	//	Placeholder for last (or only) marker
+	var marker;
+	
+	//	Load posts from API
+	async function load_posts() {
+		
+			let url = '/geojson';
+			const response = await fetch(url)
+			var posts_json = await response.json();
+			return posts_json;
+		
+	}
+
+	async function main() {
+		var posts = await load_posts();
+
+		//	Set up clustering
+		var markers = L.markerClusterGroup({
+			maxClusterRadius: 29,
+			disableClusteringAtZoom: 17
+		});
+
+		markers.on('click', function (post) {
+			//	Placeholder. Used to display images
+		});
+
+		//	Add pop-up to markers
+		for (var i = 0; i < posts.features.length; i++) {
+			var post   = posts.features[i];
+			var lat    = post.geometry.coordinates[1];
+			var longt  = post.geometry.coordinates[0];
+			var postID = post.id;
+			var imgURl = post.properties.media[0].url;
+			if (imgURl == "") {
+				var imgHTML = "";
+			} else {
+				var imgHTML = "<img src='" + imgURl + "' width='200'><br>";
+			}
+			var title  = post.properties.popupContent + imgHTML + "<time>" + post.properties.created_at + "</time>";
+			marker = L.marker(new L.LatLng(lat, longt), {  postID: postID, draggable: "" });
+			marker.bindPopup(title);
+			markers.addLayer(marker);
+		}
+
+		//	Add the clusters to the map
+		map.addLayer(markers);
+		
+		//	Add the tiles layers
+		var baseMaps = {
+			"Open Street Map": OpenStreetMap_Mapnik
+		};
+		OpenStreetMap_Mapnik.addTo(map);
+
+	
+		L.control.layers(baseMaps, null, {collapsed:false}).addTo(map);
+	
+		//	Cluster options
+		var markers = L.markerClusterGroup({
+			maxClusterRadius: 29,
+			disableClusteringAtZoom: 17
+		});
+
+		//	View of the map
+		map.setView([51, 0], 7);
+
+		//	Snap to bounding box if any
+		map.fitBounds([ [,], [, ] ]);
+	}
+
+	main();
+</script>
+
+</body>
+</html>

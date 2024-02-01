@@ -142,4 +142,9 @@ class User extends AbstractController
 		return $response;
 	}
 
+	#[Route('/', name: 'base')]
+	public function base(): Response {
+		return $this->render('index.html.twig');
+	}
+
 }
