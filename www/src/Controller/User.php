@@ -19,16 +19,16 @@ class User extends AbstractController
 				"https://www.w3.org/ns/activitystreams",
 				"https://w3id.org/security/v1"
 			),
-			"id"        => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+			"id"        => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 			"type"      => "Person",
 			"following" => "https://{$_SERVER['SERVER_NAME']}/following",
 			"followers" => "https://{$_SERVER['SERVER_NAME']}/followers",
 			"inbox"     => "https://{$_SERVER['SERVER_NAME']}/inbox",
 			"outbox"    => "https://{$_SERVER['SERVER_NAME']}/outbox",
-			"preferredUsername" => "edent_location",
+			"preferredUsername" => "{$_ENV['USERNAME']}",
 			"name"      => "Terence Eden's location",
 			"summary"   => "Where @edent is. All replies are ignored. This is a write-only account.",
-			"url"       => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+			"url"       => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 			"manuallyApprovesFollowers" => true,
 			"discoverable" => true,
 			"indexable"    => true,
@@ -44,8 +44,8 @@ class User extends AbstractController
 				"url"       => "https://{$_SERVER['SERVER_NAME']}/image.jpg"
 			),
 			"publicKey" => array(
-				"id"           => "https://{$_SERVER['SERVER_NAME']}/edent_location#main-key",
-				"owner"        => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+				"id"           => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}#main-key",
+				"owner"        => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 				"publicKeyPem" => $_ENV["PUBLIC_KEY"]
 			)
 		);
@@ -145,14 +145,17 @@ class User extends AbstractController
 
 	#[Route('/', name: 'base')]
 	public function base(): Response {
-		return $this->render('index.html.twig');
+		return $this->render('index.html.twig', [
+			"username" => $_ENV['USERNAME'],
+			"domain"   => $_SERVER['SERVER_NAME']
+		]);
 	}
 
 	#[Route("/new", name: "new")]
 	public function new(): Response {
 		return $this->render('new.html.twig', [
-			'password' => $_ENV["API_PASSWORD"],
-	  ]);
+			"password" => $_ENV["API_PASSWORD"]
+		]);
 	}
 
 }

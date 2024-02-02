@@ -25,7 +25,7 @@ class OutBox extends AbstractController
 		foreach ($posts as $post) {
 			$orderedItems[] = array(
 				"type"   => "Create",
-				"actor"  => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+				"actor"  => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 				"object" => "https://{$_SERVER['SERVER_NAME']}/{$post}"
 			);
 			//json_decode( file_get_contents( $post ) );
@@ -133,7 +133,7 @@ class OutBox extends AbstractController
 			"id"           => "https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json",
 			"type"         => "Note",
 			"published"    => $timestamp,
-			"attributedTo" => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+			"attributedTo" => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 			"content"      => $content,
 			"contentMap"   => ["en" => $content],
 			"to"           => ["https://www.w3.org/ns/activitystreams#Public"],
@@ -152,7 +152,7 @@ class OutBox extends AbstractController
 			"@context" => "https://www.w3.org/ns/activitystreams",
 			"id"       => "https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json",
 			"type"     => "Create",
-			"actor"    => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+			"actor"    => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 			"to"       => [
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
@@ -186,7 +186,7 @@ class OutBox extends AbstractController
 			
 			//	Set up signing
 			$privateKey = $_ENV["PRIVATE_KEY"];
-			$keyId = "https://{$_SERVER['SERVER_NAME']}/edent_location#main-key";
+			$keyId = "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}#main-key";
 	
 			$hash = hash('sha256', $message_json, true);
 			$digest = base64_encode($hash);

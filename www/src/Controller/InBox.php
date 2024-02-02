@@ -19,11 +19,9 @@ class InBox extends AbstractController
 		$request = Request::createFromGlobals();
 		$inbox_message = $request->getPayload()->all();
 
-		// file_put_contents("inbox.txt",serialize($inbox_message)); 
-
 		//	No type? Ignore it
 		if ( !isset( $inbox_message["type"] ) ) { 
-			file_put_contents("logs/" . date("c") . ".json", print_r( json_encode($inbox_message), true ) ); 
+			// file_put_contents("logs/" . date("c") . ".json", print_r( json_encode($inbox_message), true ) ); 
 			die(); 
 		}
 
@@ -63,13 +61,13 @@ class InBox extends AbstractController
 			'@context' => 'https://www.w3.org/ns/activitystreams',
 			'id'       => "https://{$_SERVER['SERVER_NAME']}/{$guid}",
 			'type'     => 'Accept',
-			'actor'    => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+			'actor'    => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 			'object'   => [
 				'@context' => "https://www.w3.org/ns/activitystreams",
 				'id'       => $inbox_id,
 				'type'     => $inbox_type,
 				'actor'    => $inbox_actor,
-				'object'   => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+				'object'   => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 			]
 		];
 		$message_json = json_encode($message);
@@ -81,7 +79,7 @@ class InBox extends AbstractController
 		
 		//	Set up signing
 		$privateKey = $_ENV["PRIVATE_KEY"];
-		$keyId = "https://{$_SERVER['SERVER_NAME']}/edent_location#main-key";
+		$keyId = "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}#main-key";
 
 		$hash = hash('sha256', $message_json, true);
 		$digest = base64_encode($hash);
