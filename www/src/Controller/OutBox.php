@@ -53,7 +53,7 @@ class OutBox extends AbstractController
 		//	Was this POST'd?
 		if ( $request->isMethod('POST') ) {
 			//	Password check
-			if ( $_ENV["PASSWORD"] != $request->request->get( "password" ) ) {
+			if ( $_ENV["API_PASSWORD"] != $request->request->get( "password" ) ) {
 				die();
 			}
 
