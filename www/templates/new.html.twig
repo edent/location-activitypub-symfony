@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+	<head>
+		<meta charset="UTF-8">
+		<title>Locate Me</title>
+		<script src="/js/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<button onclick="geoFindMe()" id="gpsButton"><strong>📍</strong> Locations near me</button>
+		<ol id="list"></ol>
+		<p class="result"></p>
+	<script>
+function geoFindMe() {
+	var output = document.getElementById("gpsButton");
+
+	if (!navigator.geolocation){
+		output.innerHTML = "GPS is not supported by your device";
+		return;
+	}
+
+	function success(position) {
+		var latitude  = position.coords.latitude;
+		var longitude = position.coords.longitude;
+
+		output.innerHTML = '🔄 Update my location';
+
+		$.get( 'https://overpass-api.de/api/interpreter?data=[out:json];nw%5B%22name%22%5D%5B%21%22highway%22%5D%5B%21%22railway%22%5D%5B%21%22waterway%22%5D%5B%21%22power%22%5D(around:100,' + latitude + ','+ longitude + ');out%20center%20qt%2025;', function( data ) {
+			$.each(data.elements, function(index, element) {
+				var PlaceID   = element.id;
+				var PlaceType = element.type;
+				if ( "node" == PlaceType ) {
+					var PlaceLat  = element.lat;
+					var PlaceLon  = element.lon;
+				} else {
+					var PlaceLat  = element.center.lat;
+					var PlaceLon  = element.center.lon;
+				}
+				var PlaceName = element.tags.name;
+				$('#list').append(
+					'<li>' +
+						'<a href="https://www.openstreetmap.org/' + PlaceType + '/' + PlaceID + '">' + PlaceName + '</a>' + 
+						'<details><summary>Check In</summary>' +
+							'<form action="/send" method="post" enctype="multipart/form-data">' +
+								'<label   for="details">Check In Details:</label><br>' +
+								'<textarea id="details" name="details" rows="5" cols="32"></textarea><br>' +
+								'<label for="photo">Pick a photo</label><br>' +
+								'<input type="file"   name="photo" id="photo" accept="image/jpeg;capture=camera"><br>' +
+								'<label                for="alt">Alt Text</label><br>' +
+								'<input type="text"   name="alt" id="alt" size="32" /><br>' +
+								'<input type="hidden" name="PlaceID"   value="'+ PlaceID   +'">' +
+								'<input type="hidden" name="PlaceType" value="'+ PlaceType +'">' +
+								'<input type="hidden" name="PlaceLat"  value="'+ PlaceLat  +'">' +
+								'<input type="hidden" name="PlaceLon"  value="'+ PlaceLon  +'">' +
+								'<input type="hidden" name="PlaceName" value="'+ PlaceName +'">' +
+								'<input type="hidden" name="password"  value="{{ password }}">'  +
+								'<input type="submit"                  value="Check In">' + 
+							'</form>' +
+						'</details>' +
+					'</li>');
+			});
+			$( ".result" ).html( data );
+			console.log(data);
+		});
+
+		
+	}
+
+	function error() {
+		output.innerHTML = "🚫 Unable to retrieve your location";
+	}
+
+	output.innerHTML = "🛰️ Locating…";
+
+	navigator.geolocation.getCurrentPosition(success, error);
+}
+</script>
+
+</body>

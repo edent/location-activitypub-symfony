@@ -1,0 +1,16 @@
+security:
+  password_hashers:
+    Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: plaintext
+  providers:
+    in_memory_users:
+      memory:
+        users:
+          - identifier: '%env(HTTP_BASIC_AUTH_USERNAME)%'
+            password: '%env(HTTP_BASIC_AUTH_PASSWORD)%'
+            roles: [ ROLE_USER ]
+  firewalls:
+    main:
+      pattern: ^/new
+      http_basic: ~
+  access_control:
+    - { path: ^/, roles: [ ROLE_USER ] }

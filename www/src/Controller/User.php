@@ -148,4 +148,11 @@ class User extends AbstractController
 		return $this->render('index.html.twig');
 	}
 
+	#[Route("/new", name: "new")]
+	public function new(): Response {
+		return $this->render('new.html.twig', [
+			'password' => $_ENV["PASSWORD"],
+	  ]);
+	}
+
 }
