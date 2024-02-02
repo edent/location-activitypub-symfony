@@ -65,6 +65,26 @@ class OutBox extends AbstractController
 			$details   = $request->request->get( "details"   );
 			$alt       = $request->request->get( "alt"       );
 
+			//	Get hashtags
+			$hashtags = [];
+			preg_match_all('/#(\w+)/', $details, $matches);
+			foreach ($matches[1] as $match) {
+				$hashtags[] = $match;
+			}
+
+			$tags = [];
+			foreach ( $hashtags as $hashtag ) {
+				$tags[] = array(
+					"type" => "Hashtag",
+					"name" => "#{$hashtag}",
+					// "href" => "/tag/{$hashtag}"
+				);
+			}
+
+			//	Add links for hashtags
+			$details = preg_replace('/(?<!\S)#([0-9\p{L}]+)/u', '<a href="https://location.edent.tel/tag/$1">#$1</a>', $details);
+
+			//	Construct the content
 			$content = "<p>🌐 Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a><br>{$details}</p>";
 
 		} else {
@@ -103,10 +123,13 @@ class OutBox extends AbstractController
 
 		$timestamp = date("c");
 		//	Outgoing Message ID
-		$guid = $this->uuid();//bin2hex(random_bytes(16));
+		$guid = $this->uuid();
 
 		$note = [
-			"@context"     => array("https://www.w3.org/ns/activitystreams",["@language" => "en"]),
+			"@context"     => array(
+				"https://www.w3.org/ns/activitystreams",
+				["Hashtag" => "https://www.w3.org/ns/activitystreams#Hashtag"]
+			),
 			"id"           => "https://location.edent.tel/posts/{$guid}.json",
 			"type"         => "Note",
 			"published"    => $timestamp,
@@ -120,7 +143,8 @@ class OutBox extends AbstractController
 				"type"      => "Place",
 				"longitude" => $PlaceLon,
 				"latitude"  => $PlaceLat
-			]
+			],
+			"tag"          => $tags
 		];
 
 		//	Message
