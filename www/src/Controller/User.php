@@ -19,16 +19,16 @@ class User extends AbstractController
 				"https://www.w3.org/ns/activitystreams",
 				"https://w3id.org/security/v1"
 			),
-			"id"        => "https://location.edent.tel/edent_location",
+			"id"        => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 			"type"      => "Person",
-			"following" => "https://location.edent.tel/following",
-			"followers" => "https://location.edent.tel/followers",
-			"inbox"     => "https://location.edent.tel/inbox",
-			"outbox"    => "https://location.edent.tel/outbox",
+			"following" => "https://{$_SERVER['SERVER_NAME']}/following",
+			"followers" => "https://{$_SERVER['SERVER_NAME']}/followers",
+			"inbox"     => "https://{$_SERVER['SERVER_NAME']}/inbox",
+			"outbox"    => "https://{$_SERVER['SERVER_NAME']}/outbox",
 			"preferredUsername" => "edent_location",
 			"name"      => "Terence Eden's location",
 			"summary"   => "Where @edent is. All replies are ignored. This is a write-only account.",
-			"url"       => "https://location.edent.tel/edent_location",
+			"url"       => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 			"manuallyApprovesFollowers" => true,
 			"discoverable" => true,
 			"indexable"    => true,
@@ -36,16 +36,16 @@ class User extends AbstractController
 			"icon" => array(
 				"type"      => "Image",
 				"mediaType" => "image/jpeg",
-				"url"       => "https://location.edent.tel/icon.jpg"
+				"url"       => "https://{$_SERVER['SERVER_NAME']}/icon.jpg"
 			),
 			"image" => array(
 				"type"      => "Image",
 				"mediaType" => "image/jpeg",
-				"url"       => "https://location.edent.tel/image.jpg"
+				"url"       => "https://{$_SERVER['SERVER_NAME']}/image.jpg"
 			),
 			"publicKey" => array(
-				"id"           => "https://location.edent.tel/edent_location#main-key",
-				"owner"        => "https://locaiton.edent.tel/edent_location",
+				"id"           => "https://{$_SERVER['SERVER_NAME']}/edent_location#main-key",
+				"owner"        => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 				"publicKeyPem" => $_ENV["PUBLIC_KEY"]
 			)
 		);
@@ -61,10 +61,10 @@ class User extends AbstractController
 		//	Create User's Profile
 		$feature = array(
 			"@context"   => "https://www.w3.org/ns/activitystreams",
-			"id"         => "https://location.edent.tel/following",
+			"id"         => "https://{$_SERVER['SERVER_NAME']}/following",
 			"type"       => "OrderedCollection",
 			"totalItems" => 0,
-			"first"      => "https://location.edent.tel/following_accts"
+			"first"      => "https://{$_SERVER['SERVER_NAME']}/following_accts"
 		);
 		//	Render the page
 		$response = new JsonResponse($feature);
@@ -85,10 +85,10 @@ class User extends AbstractController
 		//	Create User's Profile
 		$feature = array(
 				"@context"   => "https://www.w3.org/ns/activitystreams",
-				"id"         => "https://location.edent.tel/followers",
+				"id"         => "https://{$_SERVER['SERVER_NAME']}/followers",
 				"type"       => "OrderedCollection",
 				"totalItems" => $followers_total,
-				"first"      => "https://location.edent.tel/follower_accts"
+				"first"      => "https://{$_SERVER['SERVER_NAME']}/follower_accts"
 		);
 		
 		//	Render the page

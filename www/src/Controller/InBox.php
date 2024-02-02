@@ -61,15 +61,15 @@ class InBox extends AbstractController
 		//	Accept message
 		$message = [
 			'@context' => 'https://www.w3.org/ns/activitystreams',
-			'id'       => 'https://location.edent.tel/' . $guid,
+			'id'       => "https://{$_SERVER['SERVER_NAME']}/{$guid}",
 			'type'     => 'Accept',
-			'actor'    => 'https://location.edent.tel/edent_location',
+			'actor'    => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 			'object'   => [
-				'@context' => 'https://www.w3.org/ns/activitystreams',
+				'@context' => "https://www.w3.org/ns/activitystreams",
 				'id'       => $inbox_id,
 				'type'     => $inbox_type,
 				'actor'    => $inbox_actor,
-				'object'   => 'https://location.edent.tel/edent_location',
+				'object'   => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 			]
 		];
 		$message_json = json_encode($message);
@@ -81,7 +81,7 @@ class InBox extends AbstractController
 		
 		//	Set up signing
 		$privateKey = $_ENV["PRIVATE_KEY"];
-		$keyId = 'https://location.edent.tel/edent_location#main-key';
+		$keyId = "https://{$_SERVER['SERVER_NAME']}/edent_location#main-key";
 
 		$hash = hash('sha256', $message_json, true);
 		$digest = base64_encode($hash);

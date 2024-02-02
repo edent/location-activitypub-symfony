@@ -15,17 +15,17 @@ class WellKnown extends AbstractController
 
 		//	Create User's WebFinger
 		$feature = array(
-			"subject" => "acct:edent_location@location.edent.tel",
+			"subject" => "acct:edent_location@{$_SERVER['SERVER_NAME']}",
 			"links"   => array(
 				array(
 					"rel"  => "self",
 					"type" => "application/activity+json",
-					"href" => "https://location.edent.tel/edent_location"
+					"href" => "https://{$_SERVER['SERVER_NAME']}/edent_location"
 				),
 				array(
 					"rel"  => "http://webfinger.net/rel/avatar",
 					"type" => "image/jpeg",
-					"href" => "https://location.edent.tel/icon.jpg"
+					"href" => "https://{$_SERVER['SERVER_NAME']}/icon.jpg"
 				)
 			),
 		);

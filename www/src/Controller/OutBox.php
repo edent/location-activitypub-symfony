@@ -25,8 +25,8 @@ class OutBox extends AbstractController
 		foreach ($posts as $post) {
 			$orderedItems[] = array(
 				"type"   => "Create",
-				"actor"  => "https://location.edent.tel/edent_location",
-				"object" => "https://location.edent.tel/{$post}"
+				"actor"  => "https://{$_SERVER['SERVER_NAME']}/edent_location",
+				"object" => "https://{$_SERVER['SERVER_NAME']}/{$post}"
 			);
 			//json_decode( file_get_contents( $post ) );
 		}
@@ -35,7 +35,7 @@ class OutBox extends AbstractController
 		//	Create User's outbox
 		$feature = array(
 			"@context"     => "https://www.w3.org/ns/activitystreams",
-			"id"           => "https://location.edent.tel/outbox",
+			"id"           => "https://{$_SERVER['SERVER_NAME']}/outbox",
 			"type"         => "OrderedCollection",
 			"totalItems"   =>  $totalItems,
 			"summary"      => "All the location posts",
@@ -82,7 +82,7 @@ class OutBox extends AbstractController
 			}
 
 			//	Add links for hashtags
-			$details = preg_replace('/(?<!\S)#([0-9\p{L}]+)/u', '<a href="https://location.edent.tel/tag/$1">#$1</a>', $details);
+			$details = preg_replace('/(?<!\S)#([0-9\p{L}]+)/u', "<a href='https://{$_SERVER['SERVER_NAME']}/tag/$1'>#$1</a>", $details);
 
 			//	Construct the content
 			$content = "<p>🌐 Checked-in to: <a href='https://www.openstreetmap.org/{$PlaceType}/{$PlaceID}'>{$PlaceName}</a><br>{$details}</p>";
@@ -113,7 +113,7 @@ class OutBox extends AbstractController
 			$attachment = [
 				"type"      => "Image",
 				"mediaType" => "image/jpeg",
-				"url"       => "https://location.edent.tel/{$photo_full_path}",
+				"url"       => "https://{$_SERVER['SERVER_NAME']}/{$photo_full_path}",
 				"name"      => $alt
 		  ];
 
@@ -130,10 +130,10 @@ class OutBox extends AbstractController
 				"https://www.w3.org/ns/activitystreams",
 				["Hashtag" => "https://www.w3.org/ns/activitystreams#Hashtag"]
 			),
-			"id"           => "https://location.edent.tel/posts/{$guid}.json",
+			"id"           => "https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json",
 			"type"         => "Note",
 			"published"    => $timestamp,
-			"attributedTo" => "https://location.edent.tel/edent_location",
+			"attributedTo" => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 			"content"      => $content,
 			"contentMap"   => ["en" => $content],
 			"to"           => ["https://www.w3.org/ns/activitystreams#Public"],
@@ -150,14 +150,14 @@ class OutBox extends AbstractController
 		//	Message
 		$message = [
 			"@context" => "https://www.w3.org/ns/activitystreams",
-			"id"       => "https://location.edent.tel/posts/{$guid}.json",
+			"id"       => "https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json",
 			"type"     => "Create",
-			"actor"    => "https://location.edent.tel/edent_location",
+			"actor"    => "https://{$_SERVER['SERVER_NAME']}/edent_location",
 			"to"       => [
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc"       => [
-				"https://location.edent.tel/followers"
+				"https://{$_SERVER['SERVER_NAME']}/followers"
 			],
 			"object"   => $note
 		];
@@ -186,7 +186,7 @@ class OutBox extends AbstractController
 			
 			//	Set up signing
 			$privateKey = $_ENV["PRIVATE_KEY"];
-			$keyId = 'https://location.edent.tel/edent_location#main-key';
+			$keyId = "https://{$_SERVER['SERVER_NAME']}/edent_location#main-key";
 	
 			$hash = hash('sha256', $message_json, true);
 			$digest = base64_encode($hash);
@@ -239,7 +239,7 @@ class OutBox extends AbstractController
 		//	Close the multi-handle
 		curl_multi_close( $mh );
 
-		return $this->redirect("https://location.edent.tel/posts/{$guid}.json");
+		return $this->redirect("https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json");
 	}
 
 	public function uuid() {
