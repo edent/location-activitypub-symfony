@@ -62,9 +62,9 @@ class User extends AbstractController
 		$feature = array(
 			"@context"   => "https://www.w3.org/ns/activitystreams",
 			"id"         => "https://{$_SERVER['SERVER_NAME']}/following",
-			"type"       => "OrderedCollection",
+			"type"       => "Collection",
 			"totalItems" => 0,
-			"first"      => "https://{$_SERVER['SERVER_NAME']}/following_accts"
+			"items"      => []
 		);
 		//	Render the page
 		$response = new JsonResponse($feature);
@@ -77,18 +77,29 @@ class User extends AbstractController
 		//	Read existing followers and count them
 		$followers_file = file_get_contents( "followers.json" );
 		$followers_json = json_decode( $followers_file, true );		
-		$followers_total = 0;
-		foreach ($followers_json as $domain => $users) {
-			$followers_total += count($users['users']);
+
+		$followers = [];
+		foreach ($followers_json as $domain => $users_array) {
+			foreach ($users_array as $users) {
+				foreach ($users as $user ) {
+					$followers[] = $user ;
+				}
+			}
 		}
+		$followers = array_unique( $followers );
+
+		$followers_collection = [];
+		foreach ($followers as $follower) {
+			$followers_collection[] = ["type" => "Person", "id" => $follower];
+	  }
 
 		//	Create User's Profile
 		$feature = array(
 				"@context"   => "https://www.w3.org/ns/activitystreams",
 				"id"         => "https://{$_SERVER['SERVER_NAME']}/followers",
-				"type"       => "OrderedCollection",
-				"totalItems" => $followers_total,
-				"first"      => "https://{$_SERVER['SERVER_NAME']}/follower_accts"
+				"type"       => "Collection",
+				"totalItems" => count( $followers_collection ),
+				"items"      => $followers_collection
 		);
 		
 		//	Render the page
