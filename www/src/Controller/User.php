@@ -142,20 +142,4 @@ class User extends AbstractController
 		$response = new JsonResponse($geojson);
 		return $response;
 	}
-
-	#[Route('/', name: 'base')]
-	public function base(): Response {
-		return $this->render('index.html.twig', [
-			"username" => $_ENV['USERNAME'],
-			"domain"   => $_SERVER['SERVER_NAME']
-		]);
-	}
-
-	#[Route("/new", name: "new")]
-	public function new(): Response {
-		return $this->render('new.html.twig', [
-			"password" => $_ENV["API_PASSWORD"]
-		]);
-	}
-
 }
