@@ -28,9 +28,7 @@ class OutBox extends AbstractController
 				"actor"  => "https://{$_SERVER['SERVER_NAME']}/{$_ENV['USERNAME']}",
 				"object" => "https://{$_SERVER['SERVER_NAME']}/{$post}"
 			);
-			//json_decode( file_get_contents( $post ) );
 		}
-
 
 		//	Create User's outbox
 		$feature = array(
@@ -50,13 +48,14 @@ class OutBox extends AbstractController
 	#[Route("/send", name: "send")]
 	public function send( Request $request ): RedirectResponse {
 
-		//	Was this POST'd?
+		//	Was this POST'ed?
 		if ( $request->isMethod('POST') ) {
 			//	Password check
 			if ( $_ENV["API_PASSWORD"] != $request->request->get( "password" ) ) {
 				die();
 			}
 
+			//	Get the POST'ed data
 			$PlaceName = $request->request->get( "PlaceName" );
 			$PlaceLat  = $request->request->get( "PlaceLat"  );
 			$PlaceLon  = $request->request->get( "PlaceLon"  );
@@ -65,23 +64,23 @@ class OutBox extends AbstractController
 			$details   = $request->request->get( "details"   );
 			$alt       = $request->request->get( "alt"       );
 
-			//	Get hashtags
+			//	Get any hashtags
 			$hashtags = [];
 			preg_match_all('/#(\w+)/', $details, $matches);
 			foreach ($matches[1] as $match) {
 				$hashtags[] = $match;
 			}
 
+			//	Construct the tag value for the post
 			$tags = [];
 			foreach ( $hashtags as $hashtag ) {
 				$tags[] = array(
 					"type" => "Hashtag",
 					"name" => "#{$hashtag}",
-					// "href" => "/tag/{$hashtag}"
 				);
 			}
 
-			//	Add links for hashtags
+			//	Add links for hashtags into the text
 			$details = preg_replace('/(?<!\S)#([0-9\p{L}]+)/u', "<a href='https://{$_SERVER['SERVER_NAME']}/tag/$1'>#$1</a>", $details);
 
 			//	Construct the content
@@ -96,7 +95,7 @@ class OutBox extends AbstractController
 			$photo = $_FILES['photo']['tmp_name'];
 
 			//	Files are stored according to their hash
-			//	So "abc123" is stored as "/a/b/abc123.jpg"
+			//	A hash of "abc123" is stored in "/a/b/abc123.jpg"
 			$sha1 = sha1_file( $photo );
 			$directory = substr( $sha1, 0, 1);
 			$subdirectory = substr( $sha1, 1, 1);
@@ -110,6 +109,7 @@ class OutBox extends AbstractController
 			}
 			move_uploaded_file($photo, $photo_full_path);
 
+			//	Construct the attachment value for the post
 			$attachment = [
 				"type"      => "Image",
 				"mediaType" => "image/jpeg",
@@ -121,10 +121,13 @@ class OutBox extends AbstractController
 			$attachment = [];
 		}
 
+		//	Current time
 		$timestamp = date("c");
+
 		//	Outgoing Message ID
 		$guid = $this->uuid();
 
+		//	Construct the Note
 		$note = [
 			"@context"     => array(
 				"https://www.w3.org/ns/activitystreams",
@@ -147,7 +150,7 @@ class OutBox extends AbstractController
 			"tag"          => $tags
 		];
 
-		//	Message
+		//	Construct the Message
 		$message = [
 			"@context" => "https://www.w3.org/ns/activitystreams",
 			"id"       => "https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json",
@@ -214,15 +217,11 @@ class OutBox extends AbstractController
 		
 			//	POST the message and header to the requester's inbox
 			$ch = curl_init( $remoteServerUrl );
-	
-			// $curl_error_log = fopen(dirname(__FILE__).'/outcurlerr.txt', 'w');
-	
+		
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $message_json);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			// curl_setopt($ch, CURLOPT_VERBOSE, 1);
-			// curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
 
 			//	Add the handle to the multi-handle
 			curl_multi_add_handle( $mh, $ch );
@@ -239,6 +238,7 @@ class OutBox extends AbstractController
 		//	Close the multi-handle
 		curl_multi_close( $mh );
 
+		//	Render the JSON so the user can see the POST has worked
 		return $this->redirect("https://{$_SERVER['SERVER_NAME']}/posts/{$guid}.json");
 	}
 

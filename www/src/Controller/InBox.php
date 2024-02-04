@@ -20,43 +20,39 @@ class InBox extends AbstractController
 		$inbox_message = $request->getPayload()->all();
 
 		//	No type? Ignore it
-		if ( !isset( $inbox_message["type"] ) ) { 
-			// file_put_contents("logs/" . date("c") . ".json", print_r( json_encode($inbox_message), true ) ); 
-			die(); 
-		}
+		if ( !isset( $inbox_message["type"] ) ) { die(); }
 
 		//	Get the type
 		$inbox_type = $inbox_message["type"];
 
 		//	Ignore deleted account notifications
-		if ( "Delete" == $inbox_type ) { 
-			die(); 
-		}
+		if ( "Delete" == $inbox_type ) { die(); }
 
-		//	Not a follow request? Log it
-		if ( "Follow" != $inbox_type ) { 
-			file_put_contents("logs/" . date("c") . " $inbox_type.json", print_r( json_encode($inbox_message), true ) ); 
-			die(); 
-		}
+		//	Log the request
+		file_put_contents("logs/" . date("c") . " $inbox_type.json", print_r( json_encode($inbox_message), true ) ); 
+
+		//	This inbox only responds to follow requests
+		if ( "Follow" != $inbox_type ) { die(); }
 
 		//	Get the parameters
-		$inbox_id = $inbox_message["id"];
+		$inbox_id    = $inbox_message["id"];
 		$inbox_actor = $inbox_message["actor"];
-		$inbox_url = parse_url($inbox_actor, PHP_URL_SCHEME) . "://" . parse_url($inbox_actor, PHP_URL_HOST);
-		$inbox_host = parse_url($inbox_actor, PHP_URL_HOST);
+		$inbox_url   = parse_url($inbox_actor, PHP_URL_SCHEME) . "://" . parse_url($inbox_actor, PHP_URL_HOST);
+		$inbox_host  = parse_url($inbox_actor, PHP_URL_HOST);
 
 		//	Read existing users
 		$followers_file = file_get_contents( "followers.json" );
 		$followers_json = json_decode( $followers_file, true );
 		//	Add user to list. Don't care about duplicate users, server is what's important
 		$followers_json[$inbox_host]["users"][] = $inbox_actor;
-		//	Save the new file
+		//	Save the new followers file
 		file_put_contents( "followers.json", print_r( json_encode( $followers_json ), true ) );
 
 		//	Response Message ID
+		//	This isn't used for anything important so can just be a random number
 		$guid = bin2hex(random_bytes(16));
 
-		//	Accept message
+		//	Create the Accept message
 		$message = [
 			'@context' => 'https://www.w3.org/ns/activitystreams',
 			'id'       => "https://{$_SERVER['SERVER_NAME']}/{$guid}",
@@ -72,9 +68,9 @@ class InBox extends AbstractController
 		];
 		$message_json = json_encode($message);
 
-		//	Where is this being sent?
+		//	The Accept is sent to the server of the user who requested the follow
+		//	TODO: The path doesn't *always* end with/inbox
 		$host = $inbox_host;
-		// $path = '/users/Edent/inbox';
 		$path = parse_url($inbox_actor, PHP_URL_PATH) . "/inbox";
 		
 		//	Set up signing
@@ -102,36 +98,25 @@ class InBox extends AbstractController
 			      "Accept: application/activity+json",
 		);
 	
-
-		// Specify the URL of the remote server
+		// Specify the URL of the remote server's inbox
+		//	TODO: The path doesn't *always* end with/inbox
 		$remoteServerUrl = $inbox_actor . "/inbox";
-
-		// file_put_contents("follow.txt",print_r($message_json, true));
-		// file_put_contents("headers.txt",print_r($headers, true));
-		// file_put_contents("remote.txt", $remoteServerUrl);
 
 		//	POST the message and header to the requester's inbox
 		$ch = curl_init($remoteServerUrl);
-
-		// $curl_error_log = fopen(dirname(__FILE__).'/curlerr.txt', 'w');
-
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $message_json);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		// curl_setopt($ch, CURLOPT_VERBOSE, 1);
-		// curl_setopt($ch, CURLOPT_STDERR, $curl_error_log);
 	
 		$response = curl_exec($ch);
 		if(curl_errno($ch)) {
 			file_put_contents("error.txt",  curl_error($ch) );
-		} else {
-			// file_put_contents("curl.txt", $response);
 		}
 		curl_close($ch);
 
 		//	Render the page
-		//	Not necessary - but gives us something to look at!
+		//	Not necessary - but gives us something to look at if doing this manually!
 		$response = new JsonResponse($message);	
 		$response->headers->add($headers);
 		return $response;

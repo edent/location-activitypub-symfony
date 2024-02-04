@@ -74,7 +74,7 @@ class User extends AbstractController
 	#[Route("/followers", name: "followers")]
 	public function followers(): JsonResponse {
 
-		//	Read existing followers and count them
+		//	Read existing followers
 		$followers_file = file_get_contents( "followers.json" );
 		$followers_json = json_decode( $followers_file, true );		
 
@@ -86,12 +86,14 @@ class User extends AbstractController
 				}
 			}
 		}
+		//	Remove any duplicates
 		$followers = array_unique( $followers );
 
+		//	Construct the collection
 		$followers_collection = [];
 		foreach ($followers as $follower) {
 			$followers_collection[] = ["type" => "Person", "id" => $follower];
-	  }
+		}
 
 		//	Create User's Profile
 		$feature = array(
@@ -115,7 +117,7 @@ class User extends AbstractController
 		//	Create an ordered list
 		$features = [];
 
-		//	Loop through them all
+		//	Loop through the posts
 		foreach ($posts as $post) {
 			//	Get contents of the file
 			$feature = json_decode( file_get_contents( $post ) );
