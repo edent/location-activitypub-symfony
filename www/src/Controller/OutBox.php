@@ -139,10 +139,10 @@ class OutBox extends AbstractController
 			"to"           => ["https://www.w3.org/ns/activitystreams#Public"],
 			"attachment"   => $attachment,
 			"location"     => [
-				"name"      => $PlaceName,
-				"type"      => "Place",
-				"longitude" => $PlaceLon,
-				"latitude"  => $PlaceLat
+				"name"         => $PlaceName,
+				"type"         => "Place",
+				"longitude"    => $PlaceLon,
+				"latitude"     => $PlaceLat
 			],
 			"tag"          => $tags
 		];
