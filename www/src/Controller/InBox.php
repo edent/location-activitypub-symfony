@@ -19,8 +19,20 @@ class InBox extends AbstractController
 		$request = Request::createFromGlobals();
 		$inbox_message = $request->getPayload()->all();
 
-		//	No type? Ignore it
-		if ( !isset( $inbox_message["type"] ) ) { die(); }
+		//	No type? Ignore it. 
+		//	Show a default OrderedCollection as per https://www.w3.org/TR/activitypub/#inbox
+		if ( !isset( $inbox_message["type"] ) ) { 
+			$message = [
+				"@context"     => "https://www.w3.org/ns/activitystreams",
+				"summary"      => "Inbox",
+				"type"         => "OrderedCollection",
+				"totalItems"   => 0,
+				"orderedItems" => []
+			];
+			//	Render the page
+			$response = new JsonResponse($message);	
+			return $response; 
+		}
 
 		//	Get the type
 		$inbox_type = $inbox_message["type"];
